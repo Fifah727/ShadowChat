@@ -1,0 +1,13 @@
+psycopg2
+SQLAlchemy
+Flask
+fastapi
+uvicorn
+cryptography
+PyNaCl
+werkzeug
+aiofiles
+pytest
+httpx
+python-dotenv
+uvloop
