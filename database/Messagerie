@@ -1,0 +1,559 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 17.2
+-- Dumped by pg_dump version 17.2
+
+-- Started on 2025-04-03 11:01:23
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- TOC entry 224 (class 1259 OID 24910)
+-- Name: Cle_session; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public."Cle_session" (
+    id_cle_session integer NOT NULL,
+    utilisateur_id integer NOT NULL,
+    cle_session text NOT NULL,
+    date_expiration date NOT NULL
+);
+
+
+ALTER TABLE public."Cle_session" OWNER TO postgres;
+
+--
+-- TOC entry 223 (class 1259 OID 24909)
+-- Name: Cle_session_id_cle_session_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public."Cle_session_id_cle_session_seq"
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public."Cle_session_id_cle_session_seq" OWNER TO postgres;
+
+--
+-- TOC entry 4853 (class 0 OID 0)
+-- Dependencies: 223
+-- Name: Cle_session_id_cle_session_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public."Cle_session_id_cle_session_seq" OWNED BY public."Cle_session".id_cle_session;
+
+
+--
+-- TOC entry 226 (class 1259 OID 24924)
+-- Name: Parametres_confidentialite; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public."Parametres_confidentialite" (
+    id_parametre integer NOT NULL,
+    utilisatuer_id integer NOT NULL,
+    chiffrement_active boolean NOT NULL,
+    auto_destruction_active boolean NOT NULL,
+    mode_anonyme_active boolean NOT NULL
+);
+
+
+ALTER TABLE public."Parametres_confidentialite" OWNER TO postgres;
+
+--
+-- TOC entry 225 (class 1259 OID 24923)
+-- Name: Parametres_confidentialite_id_parametre_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public."Parametres_confidentialite_id_parametre_seq"
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public."Parametres_confidentialite_id_parametre_seq" OWNER TO postgres;
+
+--
+-- TOC entry 4854 (class 0 OID 0)
+-- Dependencies: 225
+-- Name: Parametres_confidentialite_id_parametre_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public."Parametres_confidentialite_id_parametre_seq" OWNED BY public."Parametres_confidentialite".id_parametre;
+
+
+--
+-- TOC entry 222 (class 1259 OID 24891)
+-- Name: fichiers; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.fichiers (
+    id_fichier integer NOT NULL,
+    expediteur_id integer NOT NULL,
+    destinataire_id integer NOT NULL,
+    nom_fichier text NOT NULL,
+    type_fichier text NOT NULL,
+    contenu_chiffre text NOT NULL,
+    date_transfert date NOT NULL
+);
+
+
+ALTER TABLE public.fichiers OWNER TO postgres;
+
+--
+-- TOC entry 221 (class 1259 OID 24890)
+-- Name: fichiers_id_fichier_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.fichiers_id_fichier_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.fichiers_id_fichier_seq OWNER TO postgres;
+
+--
+-- TOC entry 4855 (class 0 OID 0)
+-- Dependencies: 221
+-- Name: fichiers_id_fichier_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.fichiers_id_fichier_seq OWNED BY public.fichiers.id_fichier;
+
+
+--
+-- TOC entry 228 (class 1259 OID 24936)
+-- Name: logs; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.logs (
+    id_log integer NOT NULL,
+    utilisateur_id integer NOT NULL,
+    type_action text NOT NULL,
+    description_action text NOT NULL,
+    date_action date NOT NULL
+);
+
+
+ALTER TABLE public.logs OWNER TO postgres;
+
+--
+-- TOC entry 227 (class 1259 OID 24935)
+-- Name: logs_id_log_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.logs_id_log_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.logs_id_log_seq OWNER TO postgres;
+
+--
+-- TOC entry 4856 (class 0 OID 0)
+-- Dependencies: 227
+-- Name: logs_id_log_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.logs_id_log_seq OWNED BY public.logs.id_log;
+
+
+--
+-- TOC entry 220 (class 1259 OID 24872)
+-- Name: messages; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.messages (
+    id_message integer NOT NULL,
+    expediteur_id integer NOT NULL,
+    destinataire_id integer NOT NULL,
+    contenu_chiffre text NOT NULL,
+    auto_destruction boolean NOT NULL,
+    date_expiration date NOT NULL,
+    date_envoi date NOT NULL
+);
+
+
+ALTER TABLE public.messages OWNER TO postgres;
+
+--
+-- TOC entry 219 (class 1259 OID 24871)
+-- Name: messages_id_message_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.messages_id_message_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.messages_id_message_seq OWNER TO postgres;
+
+--
+-- TOC entry 4857 (class 0 OID 0)
+-- Dependencies: 219
+-- Name: messages_id_message_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.messages_id_message_seq OWNED BY public.messages.id_message;
+
+
+--
+-- TOC entry 218 (class 1259 OID 24854)
+-- Name: utilisateurs; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.utilisateurs (
+    id_utilisateur integer NOT NULL,
+    nom_utilisateur text NOT NULL,
+    cle_publique text NOT NULL,
+    mode_anonyme boolean NOT NULL,
+    date_creation date NOT NULL
+);
+
+
+ALTER TABLE public.utilisateurs OWNER TO postgres;
+
+--
+-- TOC entry 217 (class 1259 OID 24853)
+-- Name: utilisateurs_id_utilisateur_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.utilisateurs_id_utilisateur_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.utilisateurs_id_utilisateur_seq OWNER TO postgres;
+
+--
+-- TOC entry 4858 (class 0 OID 0)
+-- Dependencies: 217
+-- Name: utilisateurs_id_utilisateur_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.utilisateurs_id_utilisateur_seq OWNED BY public.utilisateurs.id_utilisateur;
+
+
+--
+-- TOC entry 4669 (class 2604 OID 24913)
+-- Name: Cle_session id_cle_session; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."Cle_session" ALTER COLUMN id_cle_session SET DEFAULT nextval('public."Cle_session_id_cle_session_seq"'::regclass);
+
+
+--
+-- TOC entry 4670 (class 2604 OID 24927)
+-- Name: Parametres_confidentialite id_parametre; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."Parametres_confidentialite" ALTER COLUMN id_parametre SET DEFAULT nextval('public."Parametres_confidentialite_id_parametre_seq"'::regclass);
+
+
+--
+-- TOC entry 4668 (class 2604 OID 24894)
+-- Name: fichiers id_fichier; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.fichiers ALTER COLUMN id_fichier SET DEFAULT nextval('public.fichiers_id_fichier_seq'::regclass);
+
+
+--
+-- TOC entry 4671 (class 2604 OID 24939)
+-- Name: logs id_log; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.logs ALTER COLUMN id_log SET DEFAULT nextval('public.logs_id_log_seq'::regclass);
+
+
+--
+-- TOC entry 4667 (class 2604 OID 24875)
+-- Name: messages id_message; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.messages ALTER COLUMN id_message SET DEFAULT nextval('public.messages_id_message_seq'::regclass);
+
+
+--
+-- TOC entry 4666 (class 2604 OID 24857)
+-- Name: utilisateurs id_utilisateur; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.utilisateurs ALTER COLUMN id_utilisateur SET DEFAULT nextval('public.utilisateurs_id_utilisateur_seq'::regclass);
+
+
+--
+-- TOC entry 4843 (class 0 OID 24910)
+-- Dependencies: 224
+-- Data for Name: Cle_session; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public."Cle_session" (id_cle_session, utilisateur_id, cle_session, date_expiration) FROM stdin;
+\.
+
+
+--
+-- TOC entry 4845 (class 0 OID 24924)
+-- Dependencies: 226
+-- Data for Name: Parametres_confidentialite; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public."Parametres_confidentialite" (id_parametre, utilisatuer_id, chiffrement_active, auto_destruction_active, mode_anonyme_active) FROM stdin;
+\.
+
+
+--
+-- TOC entry 4841 (class 0 OID 24891)
+-- Dependencies: 222
+-- Data for Name: fichiers; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.fichiers (id_fichier, expediteur_id, destinataire_id, nom_fichier, type_fichier, contenu_chiffre, date_transfert) FROM stdin;
+\.
+
+
+--
+-- TOC entry 4847 (class 0 OID 24936)
+-- Dependencies: 228
+-- Data for Name: logs; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.logs (id_log, utilisateur_id, type_action, description_action, date_action) FROM stdin;
+\.
+
+
+--
+-- TOC entry 4839 (class 0 OID 24872)
+-- Dependencies: 220
+-- Data for Name: messages; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.messages (id_message, expediteur_id, destinataire_id, contenu_chiffre, auto_destruction, date_expiration, date_envoi) FROM stdin;
+\.
+
+
+--
+-- TOC entry 4837 (class 0 OID 24854)
+-- Dependencies: 218
+-- Data for Name: utilisateurs; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.utilisateurs (id_utilisateur, nom_utilisateur, cle_publique, mode_anonyme, date_creation) FROM stdin;
+\.
+
+
+--
+-- TOC entry 4859 (class 0 OID 0)
+-- Dependencies: 223
+-- Name: Cle_session_id_cle_session_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public."Cle_session_id_cle_session_seq"', 1, false);
+
+
+--
+-- TOC entry 4860 (class 0 OID 0)
+-- Dependencies: 225
+-- Name: Parametres_confidentialite_id_parametre_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public."Parametres_confidentialite_id_parametre_seq"', 1, false);
+
+
+--
+-- TOC entry 4861 (class 0 OID 0)
+-- Dependencies: 221
+-- Name: fichiers_id_fichier_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.fichiers_id_fichier_seq', 1, false);
+
+
+--
+-- TOC entry 4862 (class 0 OID 0)
+-- Dependencies: 227
+-- Name: logs_id_log_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.logs_id_log_seq', 1, false);
+
+
+--
+-- TOC entry 4863 (class 0 OID 0)
+-- Dependencies: 219
+-- Name: messages_id_message_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.messages_id_message_seq', 1, false);
+
+
+--
+-- TOC entry 4864 (class 0 OID 0)
+-- Dependencies: 217
+-- Name: utilisateurs_id_utilisateur_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.utilisateurs_id_utilisateur_seq', 1, false);
+
+
+--
+-- TOC entry 4677 (class 2606 OID 24898)
+-- Name: fichiers pk_fichier; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.fichiers
+    ADD CONSTRAINT pk_fichier PRIMARY KEY (id_fichier);
+
+
+--
+-- TOC entry 4683 (class 2606 OID 24943)
+-- Name: logs pk_logs; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.logs
+    ADD CONSTRAINT pk_logs PRIMARY KEY (id_log);
+
+
+--
+-- TOC entry 4675 (class 2606 OID 24879)
+-- Name: messages pk_message; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.messages
+    ADD CONSTRAINT pk_message PRIMARY KEY (id_message);
+
+
+--
+-- TOC entry 4681 (class 2606 OID 24929)
+-- Name: Parametres_confidentialite pk_parametre; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."Parametres_confidentialite"
+    ADD CONSTRAINT pk_parametre PRIMARY KEY (id_parametre);
+
+
+--
+-- TOC entry 4679 (class 2606 OID 24917)
+-- Name: Cle_session pk_session; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."Cle_session"
+    ADD CONSTRAINT pk_session PRIMARY KEY (id_cle_session);
+
+
+--
+-- TOC entry 4673 (class 2606 OID 24861)
+-- Name: utilisateurs pk_utilisateur; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.utilisateurs
+    ADD CONSTRAINT pk_utilisateur PRIMARY KEY (id_utilisateur);
+
+
+--
+-- TOC entry 4684 (class 2606 OID 24885)
+-- Name: messages fk_destinataire; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.messages
+    ADD CONSTRAINT fk_destinataire FOREIGN KEY (destinataire_id) REFERENCES public.utilisateurs(id_utilisateur);
+
+
+--
+-- TOC entry 4686 (class 2606 OID 24904)
+-- Name: fichiers fk_destinataire; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.fichiers
+    ADD CONSTRAINT fk_destinataire FOREIGN KEY (destinataire_id) REFERENCES public.utilisateurs(id_utilisateur);
+
+
+--
+-- TOC entry 4685 (class 2606 OID 24880)
+-- Name: messages fk_expediteur; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.messages
+    ADD CONSTRAINT fk_expediteur FOREIGN KEY (expediteur_id) REFERENCES public.utilisateurs(id_utilisateur);
+
+
+--
+-- TOC entry 4687 (class 2606 OID 24899)
+-- Name: fichiers fk_expediteur; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.fichiers
+    ADD CONSTRAINT fk_expediteur FOREIGN KEY (expediteur_id) REFERENCES public.utilisateurs(id_utilisateur);
+
+
+--
+-- TOC entry 4689 (class 2606 OID 24930)
+-- Name: Parametres_confidentialite fk_utilisateur; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."Parametres_confidentialite"
+    ADD CONSTRAINT fk_utilisateur FOREIGN KEY (utilisatuer_id) REFERENCES public.utilisateurs(id_utilisateur);
+
+
+--
+-- TOC entry 4690 (class 2606 OID 24944)
+-- Name: logs fk_utilisateur; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.logs
+    ADD CONSTRAINT fk_utilisateur FOREIGN KEY (utilisateur_id) REFERENCES public.utilisateurs(id_utilisateur);
+
+
+--
+-- TOC entry 4688 (class 2606 OID 24918)
+-- Name: Cle_session fk_utilisatuer; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."Cle_session"
+    ADD CONSTRAINT fk_utilisatuer FOREIGN KEY (utilisateur_id) REFERENCES public.utilisateurs(id_utilisateur);
+
+
+-- Completed on 2025-04-03 11:01:23
+
+--
+-- PostgreSQL database dump complete
+--
+
