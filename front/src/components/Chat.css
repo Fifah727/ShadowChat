@@ -1,0 +1,250 @@
+.login-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background-color: #f4f4f4;
+}
+
+.login-form {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 300px;
+}
+
+.login-input {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.login-button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.login-button:hover {
+    background-color: #0056b3;
+}
+
+.chat-layout {
+    display: flex;
+    height: 100vh;
+    background-color: #f0f0f0;
+}
+
+.sidebar {
+    width: 250px;
+    background-color: #e0e0e0;
+    padding: 20px;
+    border-right: 1px solid #d0d0d0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow-y: auto;
+}
+
+.sidebar-section h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.user-list, .group-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.user-item, .group-item {
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.user-item:last-child, .group-item:last-child {
+    border-bottom: none;
+}
+
+.username {
+    margin-right: 5px;
+    font-weight: bold;
+    color: #555;
+}
+
+.private-button, .group-button, .group-options-button, .group-action-button, .delete-group-button {
+    padding: 5px 10px;
+    margin-left: 5px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+.private-button:hover, .group-button:hover, .group-options-button:hover, .group-action-button:hover, .delete-group-button:hover {
+    background-color: #0056b3;
+}
+
+.group-options-panel {
+    margin-top: 10px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.create-group-form, .add-user form, .remove-user form {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.group-input {
+    flex-grow: 1;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.main-chat {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
+
+.chat-header {
+    margin-bottom: 15px;
+    border-bottom: 1px solid #d0d0d0;
+    padding-bottom: 10px;
+    color: #333;
+}
+
+.message-list {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding-bottom: 10px;
+}
+
+.message {
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+    clear: both;
+}
+
+.message.sent {
+    background-color: #dcf8c6;
+    align-self: flex-end;
+    float: right;
+}
+
+.message.received {
+    background-color: #fff;
+    float: left;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+}
+
+.message.system {
+    background-color: #f0f0f0;
+    color: #777;
+    text-align: center;
+}
+
+.message .user {
+    font-weight: bold;
+    margin-right: 5px;
+    color: #333;
+}
+
+.message-input-area {
+    padding-top: 15px;
+    border-top: 1px solid #d0d0d0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.input-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.message-input {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.send-button {
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.send-button:hover {
+    background-color: #0056b3;
+}
+
+.anonymous-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #555;
+}
+
+.file-upload {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.file-input {
+    display: none; /* Caché, le bouton personnalisé déclenche l'ouverture */
+}
+
+.upload-button {
+    padding: 8px 12px;
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.upload-button:hover {
+    background-color: #5a6268;
+}
+
+.group-item.active button {
+    font-weight: bold;
+    color: #007bff;
+}

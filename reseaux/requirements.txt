@@ -1,6 +1,8 @@
 psycopg2
 SQLAlchemy
-Flask
+flask
+flask_socketio
+flask_cors
 fastapi
 uvicorn
 cryptography
@@ -12,3 +14,5 @@ httpx
 python-dotenv
 uvloop
 websockets
+eventlet
+socket.io-client
