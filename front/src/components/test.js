@@ -1,40 +1,63 @@
 import React, { useState, useEffect } from "react";
+import { io } from "socket.io-client";
 
-function Chat() {
-  const [socket, setSocket] = useState(null);
+const socket = io("http://127.0.0.1:5000");
+
+const Chat = () => {
+  const [clientId, setClientId] = useState("");
+  const [recipientId, setRecipientId] = useState("");
+  const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
 
   useEffect(() => {
-    const ws = new WebSocket("ws://127.0.0.1:12345");
-    ws.onopen = () => ws.send(JSON.stringify({ user_id: "user123" })); // Identifiant utilisateur
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      setMessages((prev) => [...prev, `${data.from}: ${data.message}`]);
-    };
-    setSocket(ws);
+    socket.on("welcome", (msg) => console.log(msg));
+    socket.on("receive_message", (msg) => setMessages((prev) => [...prev, msg]));
 
-    return () => ws.close();
+    return () => socket.disconnect();
   }, []);
 
+  const registerClient = () => {
+    socket.emit("register", { client_id: clientId });
+  };
+
   const sendMessage = () => {
-    if (socket) {
-      socket.send(JSON.stringify({ target_id: "user456", message: input }));
-      setInput("");
-    }
+    socket.emit("send_message", { sender_id: clientId, recipient_id: recipientId, message });
+    setMessage("");
   };
 
   return (
     <div>
+      <h2>Chat privé</h2>
+      <input
+        type="text"
+        placeholder="Votre ID"
+        value={clientId}
+        onChange={(e) => setClientId(e.target.value)}
+      />
+      <button onClick={registerClient}>S'enregistrer</button>
+
+      <input
+        type="text"
+        placeholder="ID du destinataire"
+        value={recipientId}
+        onChange={(e) => setRecipientId(e.target.value)}
+      />
+      <input
+        type="text"
+        placeholder="Message"
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+      />
+      <button onClick={sendMessage}>Envoyer</button>
+
       <div>
+        <h3>Messages :</h3>
         {messages.map((msg, index) => (
-          <p key={index}>{msg}</p>
+          <div key={index}>{msg}</div>
         ))}
       </div>
-      <input value={input} onChange={(e) => setInput(e.target.value)} />
-      <button onClick={sendMessage}>Envoyer</button>
     </div>
   );
-}
+};
 
 export default Chat;
