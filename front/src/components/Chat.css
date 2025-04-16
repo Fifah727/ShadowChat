@@ -1,20 +1,29 @@
+/* Chat.css */
+
+body {
+    font-family: sans-serif;
+    margin: 0;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
 .login-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     height: 100vh;
-    background-color: #f4f4f4;
+    background-color: #eee;
 }
 
 .login-form {
     background-color: #fff;
-    padding: 30px;
+    padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 10px;
     width: 300px;
 }
 
@@ -26,13 +35,13 @@
 }
 
 .login-button {
-    padding: 10px 20px;
+    padding: 10px 15px;
     background-color: #007bff;
     color: white;
     border: none;
     border-radius: 4px;
-    font-size: 16px;
     cursor: pointer;
+    font-size: 16px;
     transition: background-color 0.3s ease;
 }
 
@@ -43,24 +52,32 @@
 .chat-layout {
     display: flex;
     height: 100vh;
-    background-color: #f0f0f0;
 }
 
 .sidebar {
+    background-color: #f8f9fa;
+    border-right: 1px solid #dee2e6;
     width: 250px;
-    background-color: #e0e0e0;
     padding: 20px;
-    border-right: 1px solid #d0d0d0;
     display: flex;
     flex-direction: column;
     gap: 20px;
-    overflow-y: auto;
+}
+
+.left-sidebar {
+    border-right: 1px solid #dee2e6;
+}
+
+.right-sidebar {
+    border-left: 1px solid #dee2e6;
 }
 
 .sidebar-section h3 {
     margin-top: 0;
+    color: #495057;
+    border-bottom: 2px solid #ced4da;
+    padding-bottom: 10px;
     margin-bottom: 10px;
-    color: #333;
 }
 
 .user-list, .group-list {
@@ -71,7 +88,10 @@
 
 .user-item, .group-item {
     padding: 8px 0;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .user-item:last-child, .group-item:last-child {
@@ -79,32 +99,56 @@
 }
 
 .username {
-    margin-right: 5px;
-    font-weight: bold;
-    color: #555;
+    flex-grow: 1;
 }
 
-.private-button, .group-button, .group-options-button, .group-action-button, .delete-group-button {
-    padding: 5px 10px;
-    margin-left: 5px;
+.private-button, .group-button {
     background-color: #007bff;
     color: white;
     border: none;
     border-radius: 4px;
+    padding: 5px 10px;
     cursor: pointer;
     font-size: 14px;
     transition: background-color 0.3s ease;
+    margin-left: 5px;
 }
 
-.private-button:hover, .group-button:hover, .group-options-button:hover, .group-action-button:hover, .delete-group-button:hover {
+.private-button:hover, .group-button:hover {
     background-color: #0056b3;
+}
+
+.group-item.active .group-button {
+    background-color: #28a745;
+}
+
+.group-item.active .group-button:hover {
+    background-color: #1e7e34;
+}
+
+.group-options-button {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 15px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+    margin-top: 15px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.group-options-button:hover {
+    background-color: #545b62;
 }
 
 .group-options-panel {
     margin-top: 10px;
     padding: 15px;
-    background-color: #f9f9f9;
-    border: 1px solid #eee;
+    background-color: #fff;
+    border: 1px solid #ced4da;
     border-radius: 4px;
     display: flex;
     flex-direction: column;
@@ -114,79 +158,150 @@
 .create-group-form, .add-user form, .remove-user form {
     display: flex;
     gap: 5px;
-    margin-bottom: 10px;
 }
 
 .group-input {
-    flex-grow: 1;
     padding: 8px;
     border: 1px solid #ccc;
     border-radius: 4px;
     font-size: 14px;
+    flex-grow: 1;
+}
+
+.group-action-button {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+.group-action-button:hover {
+    background-color: #1e7e34;
+}
+
+.manage-group {
+    margin-top: 15px;
+    border-top: 1px solid #eee;
+    padding-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.manage-group h4, .manage-group h5 {
+    margin-top: 0;
+    color: #495057;
+}
+
+.delete-group-button {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 15px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+    margin-top: 10px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.delete-group-button:hover {
+    background-color: #c82333;
 }
 
 .main-chat {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    padding: 20px;
+    background-color: #fff;
 }
 
 .chat-header {
-    margin-bottom: 15px;
-    border-bottom: 1px solid #d0d0d0;
-    padding-bottom: 10px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chat-header h2 {
+    margin: 0;
     color: #333;
+}
+
+.chat-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: #6c757d;
 }
 
 .message-list {
     flex-grow: 1;
+    padding: 15px;
     overflow-y: auto;
-    padding-bottom: 10px;
-}
-
-.message {
-    padding: 8px 12px;
-    margin-bottom: 8px;
-    border-radius: 6px;
-    clear: both;
-}
-
-.message.sent {
-    background-color: #dcf8c6;
-    align-self: flex-end;
-    float: right;
-}
-
-.message.received {
-    background-color: #fff;
-    float: left;
-    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
-}
-
-.message.system {
-    background-color: #f0f0f0;
-    color: #777;
-    text-align: center;
-}
-
-.message .user {
-    font-weight: bold;
-    margin-right: 5px;
-    color: #333;
-}
-
-.message-input-area {
-    padding-top: 15px;
-    border-top: 1px solid #d0d0d0;
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
+
+.message {
+    padding: 10px 15px;
+    border-radius: 8px;
+    clear: both;
+    max-width: 70%;
+}
+
+.sent {
+    background-color: #007bff;
+    color: white;
+    align-self: flex-end;
+}
+
+.received {
+    background-color: #e9ecef;
+    color: #333;
+    align-self: flex-start;
+}
+
+.system {
+    background-color: #f0f0f0;
+    color: #777;
+    text-align: center;
+    font-style: italic;
+}
+
+.user {
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+.text {
+    word-break: break-word;
+}
+
+.message-input-area {
+    padding: 15px;
+    border-top: 1px solid #dee2e6;
+}
+
 .input-controls {
     display: flex;
     gap: 10px;
+    margin-bottom: 10px;
     align-items: center;
+}
+
+.anonymous-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }
 
 .message-input {
@@ -198,25 +313,23 @@
 }
 
 .send-button {
-    padding: 10px 15px;
-    background-color: #007bff;
+    background-color: #28a745;
     color: white;
     border: none;
     border-radius: 4px;
-    font-size: 16px;
+    padding: 10px 15px;
     cursor: pointer;
+    font-size: 16px;
     transition: background-color 0.3s ease;
 }
 
-.send-button:hover {
-    background-color: #0056b3;
+.send-button:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
 }
 
-.anonymous-checkbox {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    color: #555;
+.send-button:hover:enabled {
+    background-color: #1e7e34;
 }
 
 .file-upload {
@@ -226,25 +339,36 @@
 }
 
 .file-input {
-    display: none; /* Caché, le bouton personnalisé déclenche l'ouverture */
+    display: none; /* Caché, déclenché par le bouton */
 }
 
 .upload-button {
-    padding: 8px 12px;
     background-color: #6c757d;
     color: white;
     border: none;
     border-radius: 4px;
-    font-size: 14px;
+    padding: 8px 15px;
     cursor: pointer;
+    font-size: 16px;
     transition: background-color 0.3s ease;
 }
 
-.upload-button:hover {
-    background-color: #5a6268;
+.upload-button:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
 }
 
-.group-item.active button {
-    font-weight: bold;
-    color: #007bff;
+.upload-button:hover:enabled {
+    background-color: #545b62;
+}
+
+/* ... autres styles CSS ... */
+
+.user-item.active, .group-item.active {
+    background-color: #e0f7fa; /* Couleur d'arrière-plan pour l'élément actif */
+    border-left: 3px solid #00bcd4; /* Bordure pour indiquer l'élément actif */
+}
+
+.user-item.active .username, .group-item.active .group-button {
+    font-weight: bold; /* Texte en gras pour l'élément actif */
 }
