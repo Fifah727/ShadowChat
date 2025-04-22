@@ -1,0 +1,272 @@
+# # Pour executer, il faut creer un environnement virtuel 
+# # venv\Scripts\activate
+# # pip install ... (tous les bibliotheques)
+# # python serverFinal.py
+
+# from flask import Flask, request, send_file
+# from flask_socketio import SocketIO, emit, join_room, leave_room
+# from sqlalchemy.orm import scoped_session
+# from db_config import engine, SessionLocal
+# from models import Utilisateur, Message, Fichiers, Logs
+# import secrets
+# import os
+# import base64
+# from datetime import datetime
+
+# # Initialisation de l'application Flask
+# app = Flask(__name__)
+# app.config['SECRET_KEY'] = secrets.token_hex(24)
+
+# # Configuration SocketIO
+# socketio = SocketIO(app, cors_allowed_origins="*", max_http_buffer_size=10 * 1024 * 1024)
+
+
+# # Chemin d'enregistrement des fichiers
+# UPLOAD_FOLDER = 'uploads'
+# if not os.path.exists(UPLOAD_FOLDER):
+#     os.makedirs(UPLOAD_FOLDER)
+
+# # Mémoire temporaire
+# users = {}
+# messages = {"Master": []}
+
+# @socketio.on('connect')
+# def handle_connect():
+#     print(f"Client connecté : {request.sid}")
+#     users[request.sid] = {'username': None}
+#     emit('connected', {'session_id': request.sid})
+
+# @socketio.on('set_username')
+# def handle_set_username(data):
+#     session = scoped_session(SessionLocal)
+#     try:
+#         username = data.get('username', '').strip()
+#         mdp = data.get('mdp', '').strip()
+#         if not username:
+#             emit('set_username_failed', 'Nom d\'utilisateur invalide.')
+#             return
+
+#         if session.query(Utilisateur).filter_by(nom_utilisateur=username).first():
+#             emit('username_taken')
+#             return
+
+#         # Ajouter l'utilisateur
+#         new_user = Utilisateur(nom_utilisateur=username,cle_publique=mdp)
+#         session.add(new_user)
+#         session.commit()
+
+#         users[request.sid]['username'] = username
+#         join_room("Master", sid=request.sid)
+#         emit('username_set_success', username)
+#         emit('user_list', {sid: user['username'] for sid, user in users.items() if user['username']}, broadcast=True)
+#     except Exception as e:
+#         session.rollback()
+#         print(f"Erreur : {e}")
+#         emit('set_username_failed', 'Erreur du serveur.')
+#     finally:
+#         session.close()
+
+# # @socketio.on('send_message')
+# # def handle_send_message(data):
+# #     session = scoped_session(SessionLocal)
+# #     try:
+# #         room = data.get('room', 'Master')
+# #         message = data.get('message', '').strip()
+# #         sender = users.get(request.sid, {}).get('username', 'Anonyme')
+
+# #         if message:
+# #             expediteur = session.query(Utilisateur).filter_by(nom_utilisateur=sender).first()
+# #             destinataire = None if room == "Master" else session.query(Utilisateur).filter_by(nom_utilisateur=room).first()
+
+# #             new_message = Message(
+# #                 expediteur_id=expediteur.id_utilisateur if expediteur else None,
+# #                 destinataire_id=destinataire.id_utilisateur if destinataire else None,
+# #                 contenu_chiffre=message,
+# #                 date_envoi=datetime.utcnow()
+# #             )
+# #             session.add(new_message)
+# #             session.commit()
+
+# #             emit('receive_message', {'user': sender, 'text': message}, broadcast=True, to=room)
+# #     except Exception as e:
+# #         session.rollback()
+# #         print(f"Erreur lors de l'enregistrement du message : {e}")
+# #         emit('message_error', 'Erreur du serveur.')
+# #     finally:
+# #         session.close()
+
+# @socketio.on('send_message')
+# def handle_send_message(data):
+#     session = scoped_session(SessionLocal)
+#     try:
+#         room = data.get('room', 'Master')
+#         message = data.get('message', '').strip()
+#         sender = users.get(request.sid, {}).get('username', 'Anonyme')
+
+#         if message:
+#             expediteur = session.query(Utilisateur).filter_by(nom_utilisateur=sender).first()
+#             destinataire = None if room == "Master" else session.query(Utilisateur).filter_by(nom_utilisateur=room).first()
+
+#             new_message = Message(
+#                 expediteur_id=expediteur.id_utilisateur if expediteur else None,
+#                 destinataire_id=destinataire.id_utilisateur if destinataire else None,
+#                 contenu_chiffre=message,
+#                 date_envoi=datetime.utcnow()
+#             )
+#             session.add(new_message)
+#             session.commit()
+
+#             message_data = {
+#                 'user': sender,
+#                 'text': message,
+#                 'room': room if room == "Master" else None,     # Ajoute ce champ
+#                 'private': room != "Master"                      # Vrai si c'est un message privé
+#             }
+
+#             if room == "Master":
+#                 emit('receive_message', message_data, broadcast=True, to='Master')
+#             else:
+#                 recipient_sid = get_sid_by_username(room)
+#                 sender_sid = request.sid
+
+#                 if recipient_sid:
+#                     emit('receive_message', message_data, to=recipient_sid)
+#                 emit('receive_message', message_data, to=sender_sid)
+
+#     except Exception as e:
+#         session.rollback()
+#         print(f"Erreur lors de l'enregistrement du message : {e}")
+#         emit('message_error', 'Erreur du serveur.')
+#     finally:
+#         session.close()
+
+
+# @socketio.on('upload_file')
+# def handle_upload_file(data):
+#     try:
+#         filename = data.get('filename')
+#         filedata = data.get('filedata').split(',')[1]  # Base64
+#         room = data.get('room', 'Master')
+#         sender = users.get(request.sid, {}).get('username', 'Anonyme')
+
+#         if not filename or not filedata:
+#             emit('file_error', {'error': 'Données de fichier manquantes.'}, to=request.sid)
+#             return
+
+#         # Enregistrement du fichier
+#         filepath = os.path.join(UPLOAD_FOLDER, filename)
+#         with open(filepath, 'wb') as f:
+#             f.write(base64.b64decode(filedata))
+
+#         # Envoyer une notification
+#         emit('file_uploaded', {
+#             'filename': filename,
+#             'url': f'http://localhost:5001/download/{filename}',
+#             'sender': sender
+#         }, broadcast=True, to=room)
+#     except Exception as e:
+#         print(f"Erreur lors du traitement du fichier : {e}")
+#         emit('file_error', {'error': 'Erreur serveur.'}, to=request.sid)
+
+# @app.route('/download/<filename>', methods=['GET'])
+# def download_file(filename):
+#     try:
+#         filepath = os.path.join(UPLOAD_FOLDER, filename)
+#         return send_file(filepath, as_attachment=True)
+#     except Exception as e:
+#         return {'error': str(e)}, 500
+
+# @socketio.on('disconnect')
+# def handle_disconnect():
+#     session = scoped_session(SessionLocal)
+#     try:
+#         username = users.pop(request.sid, {}).get('username')
+#         if username:
+#             user = session.query(Utilisateur).filter_by(nom_utilisateur=username).first()
+#             if user:
+#                 log = Logs(
+#                     utilisateur_id=user.id_utilisateur,
+#                     type_action="déconnexion",
+#                     description_action=f"Utilisateur {username} déconnecté",
+#                     date_action=datetime.utcnow()
+#                 )
+#                 session.add(log)
+#                 session.commit()
+
+#             emit('user_disconnected', username, broadcast=True)
+#     except Exception as e:
+#         session.rollback()
+#         print(f"Erreur lors de la déconnexion : {e}")
+#     finally:
+#         session.close()
+
+# @app.route('/get_messages', methods=['GET'])
+# def get_messages():
+#     session = scoped_session(SessionLocal)
+#     try:
+#         room = request.args.get('room', 'Master')  # Par défaut "Master"
+#         userA = request.args.get('userA')  # nom_utilisateur A
+#         userB = request.args.get('userB')  # nom_utilisateur B
+
+#         if room == 'Master':
+#             messages_master = session.query(Message).join(
+#                 Utilisateur, Message.expediteur_id == Utilisateur.id_utilisateur
+#             ).filter(Message.destinataire_id == None).order_by(Message.date_envoi).all()
+
+#             response = [
+#                 {
+#                     "expediteur": msg.expediteur.nom_utilisateur if msg.expediteur else "Anonyme",
+#                     "contenu": msg.contenu_chiffre,
+#                     "date_envoi": msg.date_envoi.strftime('%Y-%m-%d %H:%M:%S')
+#                 }
+#                 for msg in messages_master
+#             ]
+#             return {"messages": response}, 200
+
+#         elif userA and userB:
+#             expediteurA = session.query(Utilisateur).filter_by(nom_utilisateur=userA).first()
+#             destinataireB = session.query(Utilisateur).filter_by(nom_utilisateur=userB).first()
+
+#             if not expediteurA or not destinataireB:
+#                 return {"error": "Utilisateur non trouvé."}, 404
+
+#             messages_users = session.query(Message).filter(
+#                 ((Message.expediteur_id == expediteurA.id_utilisateur) & (Message.destinataire_id == destinataireB.id_utilisateur)) |
+#                 ((Message.expediteur_id == destinataireB.id_utilisateur) & (Message.destinataire_id == expediteurA.id_utilisateur))
+#             ).order_by(Message.date_envoi).all()
+
+#             response = [
+#                 {
+#                     "expediteur": msg.expediteur.nom_utilisateur if msg.expediteur else "Anonyme",
+#                     "destinataire": msg.destinataire.nom_utilisateur if msg.destinataire else "Master",
+#                     "contenu": msg.contenu_chiffre,
+#                     "date_envoi": msg.date_envoi.strftime('%Y-%m-%d %H:%M:%S')
+#                 }
+#                 for msg in messages_users
+#             ]
+#             return {"messages": response}, 200
+
+#         else:
+#             return {"error": "Paramètres manquants ou invalides."}, 400
+#     except Exception as e:
+#         print(f"Erreur : {e}")
+#         return {"error": "Erreur serveur."}, 500
+#     finally:
+#         session.close()
+
+
+# def get_sid_by_username(username):
+#     for sid, info in users.items():
+#         if info.get('username') == username:
+#             return sid
+#     return None
+
+
+# if __name__ == '__main__':
+#     socketio.run(app, host='0.0.0.0', port=5001, debug=True)
+
+
+# Pour executer, il faut creer un environnement virtuel 
+# venv\Scripts\activate
+# pip install ... (tous les bibliotheques)
+# python serverFinal.py

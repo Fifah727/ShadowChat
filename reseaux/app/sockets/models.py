@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime, LargeBinary
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from db_config import Base
@@ -22,14 +22,11 @@ class Message(Base):
     date_envoi = Column(DateTime, default=datetime.utcnow)
 
 class Fichiers(Base):
-    __tablename__ = "fichiers"
-    id_fichier = Column(Integer, primary_key=True, index=True)
-    expediteur_id = Column(Integer, ForeignKey("utilisateurs.id_utilisateur"))
-    destinataire_id = Column(Integer, ForeignKey("utilisateurs.id_utilisateur"))
+    __tablename__ = 'fichiers'
+    id_fichier = Column(Integer, primary_key=True)
     nom_fichier = Column(String, nullable=False)
-    type_fichier = Column(String, default=False)
-    contenu_fichier = Column(String, nullable=True)
-    date_transfert = Column(DateTime, default=datetime.utcnow)
+    contenu_fichier = Column(LargeBinary, nullable=False)  # Utilisation correcte de LargeBinary
+    date_upload = Column(DateTime, default=datetime.utcnow)
 
 class Logs(Base):
     __tablename__ = "logs"

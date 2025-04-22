@@ -1,0 +1,34 @@
+JQuery 
+$("*"): retourne toute les balises
+$("#id"): selectionne id
+$(".class"): selectionne class
+$("div") : recupere tous les div
+$("div#id") : recupere tous les div de id
+ ----------------------------------------------------------------*---------------------
+$("div[id^='test']"): elements de div ayant un id commencant par 'test'
+ $("div[id$='test']"): elements de div ayant un id terminant par 'test'
+$("div .header") : div de classe header
+-----------------------------------------------------------------**---------------------
+$("div").html("HELLO") : modifie le contenu
+	.addClass("main"): ajoute une classe main
+	.length() : nombre de div dans la page
+-----------------------------------------------------------------***-------------------------
+$("</div>"): cree une nouvelle div
+$(":button").click();
+----------------------------------------------------------------****--------------------
+$("select option:selected").val(): retourne la valeur de l'element selectionné
+ ---------------------------------------------------------------*****-------------------------
+$("</span>").appentTo("body"): creer span et ajouter a la fin du body
+$(document).ready({ function(){..}): fonction anonyme
+---------------------------------------------------------------******----------------------
+$(this)= element courant
+each() : appele une fonction pour chaque element
+.val(valeur) : modifie la valeur de l'objet
+$("a".attr("href","home.html"):  <a href="home.html">
+.animate({width:...},duree en milisec);
+---------------------------------------------------------------*******---------------------------------
+ $(document).ready(function(){..}) : quand le document est pret, avant le chargement des images
+$("div").bind("click",function(){...}) : associe une evenement a une fonction
+$("div").one("click",function(){...}) : s'execute qu'une fois
+$("div").unbind("click",function(){...}) : arrete d'executer l'evenement
+---------------------------------------------------------------********----------------------------
