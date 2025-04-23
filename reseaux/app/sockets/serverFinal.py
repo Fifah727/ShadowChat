@@ -1,3 +1,12 @@
+# routes.py → endpoints HTTP (/download, /get_messages)
+
+# sockets.py → gestion des événements Socket.IO
+
+# utils.py → fonctions utilitaires comme get_sid_by_username
+
+# main.py → pour démarrer l’application
+
+
 from flask import Flask, request, send_file
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from sqlalchemy.orm import scoped_session
@@ -25,7 +34,7 @@ messages = {"Master": []}  # Messages dans le salon de groupe
 
 # ========================
 #     SOCKET.IO EVENTS
-# ======================== https://v.moviebox.ng/MO1vVpRhN69
+# ========================
 
 @socketio.on('connect')
 def handle_connect():
@@ -33,7 +42,8 @@ def handle_connect():
     users[request.sid] = {'username': None}
     emit('connected', {'session_id': request.sid})
 
-@socketio.on('set_username')
+# SIGN IN
+@socketio.on('set_username') 
 def handle_set_username(data):
     session = scoped_session(SessionLocal)
     try:
@@ -54,22 +64,72 @@ def handle_set_username(data):
         session.add(new_user)
         session.commit()
 
-        users[request.sid]['username'] = username
-        join_room("Master", sid=request.sid)
-
-        print(f"{username} connecté avec SID : {request.sid}")
-
         emit('username_set_success', username)
-        emit('user_list', {
-            sid: user['username'] for sid, user in users.items() if user['username']
-        }, broadcast=True)
-
+      
     except Exception as e:
         session.rollback()
         print(f"Erreur set_username : {e}")
         emit('set_username_failed', 'Erreur du serveur.')
     finally:
         session.close()
+
+# LOGIN
+@socketio.on('login') 
+def login(data):
+    session = scoped_session(SessionLocal)
+    try:
+        username = data.get('username', '').strip()
+        mdp = data.get('mdp', '').strip()
+
+        print(f"Réception set_username: {username} - {mdp}")
+
+        if not username:
+            emit('set_username_failed', 'Nom d\'utilisateur invalide.')
+            return
+
+        utilisateur = session.query(Utilisateur).filter_by(nom_utilisateur=username).first()
+        
+        if utilisateur:
+            if utilisateur.cle_publique != mdp :
+                emit('mdp_false')
+                return
+            #return jsonify({"message": "Connexion réussie", "utilisateur": {"id": utilisateur.id_utilisateur, "nom": utilisateur.nom_utilisateur}}), 200
+        else:
+            emit('not_registered')
+            return
+            #return jsonify({"error": "Utilisateur introuvable"}), 404
+
+        emit('login_success', utilisateur.id_utilisateur)
+
+        # enregistrer dans les logs son connection
+        log = Logs(
+            utilisateur_id=utilisateur.id_utilisateur,
+            type_action="Connexion",
+            description_action=f"Utilisateur {username} connecté",
+            date_action=datetime.utcnow()
+        )
+        session.add(log)
+        session.commit()
+        
+        # ajouter tout de suite dans le groupe principale Master
+        users[request.sid]['username'] = username
+        join_room("Master", sid=request.sid)
+
+        print(f"{username} connecté avec SID : {request.sid}")
+
+        # ajouter dans la liste des users connectés
+        emit('user_list', {
+            sid: user['username'] for sid, user in users.items() if user['username']
+        }, broadcast=True)
+
+    except Exception as e:
+        session.rollback()
+        print(f"Erreur de connexion : {e}")
+        emit('login_server_failed', 'Erreur du serveur.')
+    finally:
+        session.close()
+
+
 
 @socketio.on('send_message')
 def handle_send_message(data):

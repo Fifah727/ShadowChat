@@ -10,6 +10,7 @@ class Utilisateur(Base):
     cle_publique = Column(String, nullable=True)
     mode_anonyme = Column(Boolean, default=False)
     date_creation = Column(DateTime, default=datetime.utcnow)
+    
 
 class Message(Base):
     __tablename__ = "messages"

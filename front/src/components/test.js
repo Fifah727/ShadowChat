@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import io from 'socket.io-client';
 import '../icon/fontawesome-free-6.5.1-web/css/fontawesome.min.css';
 import '../icon/fontawesome-free-6.5.1-web/css/all.min.css';
-import './Chat.css';
+import '../styles/Chat.css';
 
 function Chat() {
     const [message, setMessage] = useState('');
