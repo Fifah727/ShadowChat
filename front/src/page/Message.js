@@ -1,22 +1,72 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef,useContext  } from 'react';
 import io from 'socket.io-client';
 import '../icon/fontawesome-free-6.5.1-web/css/fontawesome.min.css';
 import '../icon/fontawesome-free-6.5.1-web/css/all.min.css';
-import '../styles/Chat.css';
+import '../styles/Login.css';
+import SocketContext from '../context/SocketContext';
 
 function Message() {
     const [message, setMessage] = useState('');
     const [masterMessages, setMasterMessages] = useState([]);
     const [privateMessages, setPrivateMessages] = useState({});
-    const [username, setUsername] = useState('');
     const [connectedUsers, setConnectedUsers] = useState({});
     const [activeConversation, setActiveConversation] = useState('Master');
     const [isAnonymous, setIsAnonymous] = useState(false);
     const [theme, setTheme] = useState('light');
-
-    const socketRef = useRef(null);
     const messagesEndRef = useRef(null);
     const fileInputRef = useRef(null);
+
+    const username = localStorage.getItem('username');
+    const socket = useContext(SocketContext); // socket via context
+
+    // Appel une seule fois au début
+    useEffect(() => {
+        
+        if (!socket) return;
+
+        socket.emit('reconnect_user', { username });
+
+        socket.on('reconnect_success', (data) => {
+            console.log("Reconnexion réussie en tant que :", data.username);
+            const usernames = data.all_users
+                .filter(user => user.connecté === true)
+                .map(user => user.username);
+            setConnectedUsers(usernames);
+        });
+
+        socket.on('reconnect_failed', (error) => {
+            console.error("Accès refusé :", error);
+            window.location.href = "/login";
+        });
+
+        socket.on('receive_message', (msg) => {
+            setMasterMessages((prev) => [...prev, msg]);
+        });
+
+        socket.on('receive_private_message', (msg) => {
+            setPrivateMessages((prev) => ({
+                ...prev,
+                [msg.user]: [...(prev[msg.user] || []), msg],
+            }));
+        });
+
+        socket.on('user_disconnected', (msg) => {
+            setMasterMessages((prev) => [...prev, msg]);
+        });
+
+        socket.on('user_connected', (msg) => {
+            setMasterMessages((prev) => [...prev, msg]);
+        });
+
+        return () => {
+            socket.off('reconnect_success');
+            socket.off('reconnect_failed');
+            socket.off('receive_message');
+            socket.off('receive_private_message');
+            socket.off('user_disconnected');
+            socket.off('user_connected');
+        };
+    }, [socket, username]);
 
     useEffect(() => {
         const savedTheme = localStorage.getItem('theme') || 'light';
@@ -38,19 +88,22 @@ function Message() {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [masterMessages, privateMessages, activeConversation]);
 
-
+    // BROADCAST et PRIVE
     const handleSendMessage = (e) => {
         e.preventDefault();
-        if (message.trim() && socketRef.current) {
+        if (message.trim() && socket) {
             const content = message.trim();
-
-            if (activeConversation !== 'Master') {
-                socketRef.current.emit('private_message', {
-                    recipient: activeConversation,
+            if (activeConversation === "Master") {
+                socket.emit('send_message', {
+                    username: username,
                     message: content,
-                    anonymous: isAnonymous,
                 });
-
+            } else {
+                socket.emit('send_private_message', {
+                    username: username,
+                    message: content,
+                    destinataire: activeConversation
+                });
                 setPrivateMessages((prev) => ({
                     ...prev,
                     [activeConversation]: [
@@ -58,59 +111,48 @@ function Message() {
                         { user: 'Vous', text: content },
                     ],
                 }));
-            } else {
-                socketRef.current.emit('send_message', {
-                    message: content,
-                    room: 'Master',
-                    anonymous: isAnonymous,
-                });
             }
-
             setMessage('');
         }
     };
 
+    const handleSelectConversation = (conversation) => {
+        // get my conversations
+        setActiveConversation(conversation);
+    };
+
+    // DECONNEXION
+    const handleLogout = () => {
+        if (socket) {
+            socket.disconnect();
+        }
+        localStorage.removeItem("username");
+        window.location.href = "/login";
+    };
+
+
     const handleFileChange = (e) => {
         const file = e.target.files[0];
-        if (file && socketRef.current) {
+        if (file && socket) {
             const reader = new FileReader();
-
             reader.onload = (event) => {
                 const payload = {
                     filename: file.name,
                     filedata: event.target.result,
                     anonymous: isAnonymous,
                 };
-
                 if (activeConversation !== 'Master') {
                     payload.recipient = activeConversation;
                 } else {
                     payload.room = 'Master';
                 }
-
-                socketRef.current.emit('upload_file', payload);
+                socket.emit('upload_file', payload);
             };
-
             reader.readAsDataURL(file);
             e.target.value = null;
         }
     };
-
-    const handleSelectConversation = (conversation) => {
-        setActiveConversation(conversation);
-    };
-
-    // DECONNEXION
-    const handleLogout = () => {
-        if (socketRef.current) {
-            socketRef.current.disconnect(); // Déconnecte le socket proprement
-            socketRef.current = null;
-        }
-        // Réinitialise les états nécessaires
-        setActiveConversation('Master');
-    };
     
-    // ---------------------- Interface du chat ----------------------
 
     return (
         <div className="chat-layout">
@@ -135,9 +177,8 @@ function Message() {
                                 </li>
                             )
                         )}
-                        <li className="logout-button" onClick={handleLogout}>
-                            Déconnexion
-                            <i className="fa fa-sign-out-alt"></i> 
+                        <li  className="logout-button" onClick={handleLogout}> 
+                        <i className="fa fa-sign-out-alt"></i> Déconnexion
                         </li>
                     </ul>
                 </div>
@@ -169,6 +210,7 @@ function Message() {
                                     ? 'system'
                                     : 'received'
                             }`}
+                            
                         >
                             <div className="contenu-message">
                                 {msg.user && <span className="user-name">{msg.user} : </span>}
@@ -213,6 +255,7 @@ function Message() {
                         >
                             Joindre un fichier
                         </button>
+                        
                     </div>
 
                     <form onSubmit={handleSendMessage} className="message-input-area">

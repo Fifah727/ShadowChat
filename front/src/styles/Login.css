@@ -9,7 +9,7 @@
     --message-sent: #8fbae6; /* Bleu plus doux pour les messages envoyés */
     --message-received: #FAFAFA; /* Fond clair pour les messages reçus */
     --button-bg: #5A6A70; /* Bouton plus neutre */
-    --button-hover-bg: #3F4B4D; /* Couleur plus sombre au survol */
+    --button-hover-bg: #cae1e6; /* Couleur plus sombre au survol */
     --shadow-color: rgba(0, 0, 0, 0.15); /* Légère ombre */
 }
 
@@ -22,7 +22,7 @@ body.dark {
     --message-sent: #b0a4ce; /* Messages envoyés dans un violet doux */
     --message-received: #2A2A2A; /* Fond sombre pour les messages reçus */
     --button-bg: #2D3B4A; /* Bouton dans une teinte équilibrée */
-    --button-hover-bg: #48A3A2; /* Couleur plus vive au survol */
+    --button-hover-bg: #459796; /* Couleur plus vive au survol */
     --shadow-color: rgba(0, 0, 0, 0.3); /* Ombre légèrement renforcée */
 }
 
@@ -103,10 +103,25 @@ a:hover {
 }
 
 .login-button:hover {
-    background: darken(var(--secondary-color), 10%);
+    
     transform: scale(1.05);
 }
+.signin-button {
+    background: var(--primary-color);
+    color: #fff;
+    font-size: 18px;
+    padding: 12px 15px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
 
+.signin-button:hover {
+   
+    transform: scale(1.05);
+}
 /* Layout principal */
 .chat-layout {
     display: flex;
@@ -329,3 +344,6 @@ a:hover {
 .logout-button:hover {
     background-color: #b97438;
 }
+
+
+

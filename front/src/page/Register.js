@@ -3,7 +3,7 @@ import io from 'socket.io-client';
 import '../icon/fontawesome-free-6.5.1-web/css/fontawesome.min.css';
 import '../icon/fontawesome-free-6.5.1-web/css/all.min.css';
 import axios from 'axios';
-import '../styles/Chat.css';
+import '../styles/Login.css';
 import { Form, Button, Card, Alert } from "react-bootstrap";
 
 const Register = () => {
@@ -15,7 +15,7 @@ const Register = () => {
     const [success, setSuccess] = useState("");
 
     const initSocket = () => {
-        const newSocket = io('http://192.168.137.1:5001');
+        const newSocket = io('http://localhost:5001');
         socketRef.current = newSocket;
 
         newSocket.on('connect', () => { // REPONSE DE emit('connect', donnée) dans serverFinal.py
@@ -63,6 +63,9 @@ const Register = () => {
             }, 200); // Petit délai pour s'assurer que la connexion est bien prête
         }
     };
+    const goTo = () => {
+        window.location.href = "/login";
+     };
 
     return (
         <div className="login-container">
@@ -85,7 +88,8 @@ const Register = () => {
 
                 {error && <Alert variant="danger" className="mb-3">{error}</Alert>}
                 {success && <Alert variant="success" className="mb-3">{success}</Alert>}
-                <button type="submit" className="login-button">Se connecter</button>
+                <button type="submit" className="signin-button">S'inscrire</button>
+                <button className="login-button" onClick={goTo}>Se connecter</button>
             </form>
         </div>
     );

@@ -40,10 +40,10 @@ messages = {"Master": []}  # Messages dans le salon de groupe
 def handle_connect():
     print(f"Client connecté : {request.sid}")
     users[request.sid] = {'username': None}
-    emit('connected', {'session_id': request.sid})
+   
 
 # SIGN IN
-@socketio.on('set_username') 
+@socketio.on('set_username')
 def handle_set_username(data):
     session = scoped_session(SessionLocal)
     try:
@@ -65,7 +65,8 @@ def handle_set_username(data):
         session.commit()
 
         emit('username_set_success', username)
-      
+
+
     except Exception as e:
         session.rollback()
         print(f"Erreur set_username : {e}")
@@ -74,7 +75,7 @@ def handle_set_username(data):
         session.close()
 
 # LOGIN
-@socketio.on('login') 
+@socketio.on('login')
 def login(data):
     session = scoped_session(SessionLocal)
     try:
@@ -88,7 +89,7 @@ def login(data):
             return
 
         utilisateur = session.query(Utilisateur).filter_by(nom_utilisateur=username).first()
-        
+
         if utilisateur:
             if utilisateur.cle_publique != mdp :
                 emit('mdp_false')
@@ -99,7 +100,6 @@ def login(data):
             return
             #return jsonify({"error": "Utilisateur introuvable"}), 404
 
-        emit('login_success', utilisateur.id_utilisateur)
 
         # enregistrer dans les logs son connection
         log = Logs(
@@ -110,9 +110,12 @@ def login(data):
         )
         session.add(log)
         session.commit()
-        
+
         # ajouter tout de suite dans le groupe principale Master
         users[request.sid]['username'] = username
+        print(f"{username} connecté avec username : {users[request.sid]['username']}")
+        # username_actuel = username
+        
         join_room("Master", sid=request.sid)
 
         print(f"{username} connecté avec SID : {request.sid}")
@@ -121,6 +124,9 @@ def login(data):
         emit('user_list', {
             sid: user['username'] for sid, user in users.items() if user['username']
         }, broadcast=True)
+        
+        emit('connected', {'session_id': request.sid , 'username' : users[request.sid]['username']})
+        emit('login_success', utilisateur.id_utilisateur)
 
     except Exception as e:
         session.rollback()
@@ -130,61 +136,75 @@ def login(data):
         session.close()
 
 
-
 @socketio.on('send_message')
 def handle_send_message(data):
     session = scoped_session(SessionLocal)
-    try:
-        room = data.get('room', 'Master')
+    try:        
+        # room = data.get('room', 'Master')
         message = data.get('message', '').strip()
-        sender = users.get(request.sid, {}).get('username', 'Anonyme')
+        username = data.get('username', '').strip()
+        sender = get_sid_by_username(username)#users.get(request.sid, {}).get('username', 'Anonyme')
+       
+        #sender = users.get(request.sid)
+        if sender :
+            print(f"[send_message] De: {sender}, request.sid : {request.sid}, Message: {message}")
 
-        print(f"[send_message] De: {sender}, Vers: {room}, Message: {message}")
+        # trouver l'user expediteur dans la base de donnée
+        expediteur = session.query(Utilisateur).filter_by(nom_utilisateur=username).first()
+        #destinataire_id = 164 #on va d'abord envoyer tous les messages à un seul user
 
-        if not message:
-            print("Message vide, ignoré.")
-            return
+        # if room != "Master":
+        #     destinataire = session.query(Utilisateur).filter_by(nom_utilisateur=room).first()
+        #     if not destinataire:
+        #         print(f"Destinataire {room} introuvable.")
+        #         emit('message_error', 'Destinataire inconnu.')
+        #         return
+            # destinataire_id = destinataire.id_utilisateur
 
-        expediteur = session.query(Utilisateur).filter_by(nom_utilisateur=sender).first()
-        destinataire_id = 140
-
-        if room != "Master":
-            destinataire = session.query(Utilisateur).filter_by(nom_utilisateur=room).first()
-            if not destinataire:
-                print(f"Destinataire {room} introuvable.")
-                emit('message_error', 'Destinataire inconnu.')
-                return
-            destinataire_id = destinataire.id_utilisateur
-
+        # enregistrer le message dans la bd
         new_message = Message(
             expediteur_id=expediteur.id_utilisateur if expediteur else None,
-            destinataire_id=destinataire_id, #NULL MASTER
+            destinataire_id=None, #NULL MASTER
             contenu_chiffre=message,
             date_envoi=datetime.utcnow()
         )
         session.add(new_message)
         session.commit()
+
+        # contenu du message
+        # message_data = {
+        #     'user': sender,
+        #     'text': message,
+        #     #'destinataire': destinataire_id,
+        #     # 'private': room != "Master"
+        # }
+
+        # if room == "Master":
+        #     emit('receive_message', message_data, broadcast=True, to='Master')
+        # else:
+        #     recipient_sid = get_sid_by_username(room)
+        #     print(f"SID de {room} : {recipient_sid}")
+        #     if not recipient_sid:
+        #         print(f"SID introuvable pour {room}")
+        #         emit('message_error', f"L'utilisateur {room} n'est pas en ligne.")
+        #         return
+        #     emit('receive_message', message_data, to=recipient_sid)
+        #     emit('receive_message', message_data, to=request.sid)
+            
+        emit("receive_message", {
+            "user": username,
+            "text": message
+        }, broadcast=True)
         
-        message_data = {
-            'user': sender,
-            'text': message,
-            'room': room if room == "Master" else None,
-            'private': room != "Master"
-        }
-
-        if room == "Master":
-            emit('receive_message', message_data, broadcast=True, to='Master')
-        else:
-            recipient_sid = get_sid_by_username(room)
-            print(f"SID de {room} : {recipient_sid}")
-            if not recipient_sid:
-                print(f"SID introuvable pour {room}")
-                emit('message_error', f"L'utilisateur {room} n'est pas en ligne.")
-                return
-            emit('receive_message', message_data, to=recipient_sid)
-            emit('receive_message', message_data, to=request.sid)
-
-        print(f"Message de {sender} envoyé à {room} (SID={recipient_sid})")
+          # renvoyer la liste des users
+        emit('user_list', {
+            sid: user['username'] for sid, user in users.items() if user['username']
+        }, broadcast=True)
+        
+        for sid, user in users.items():
+            print(f"SID = {sid}, utilisateur = {user['username']}")
+        
+       
 
     except Exception as e:
         session.rollback()
@@ -192,6 +212,7 @@ def handle_send_message(data):
         emit('message_error', 'Erreur du serveur.')
     finally:
         session.close()
+
 
 @socketio.on('upload_file')
 def handle_upload_file(data):
