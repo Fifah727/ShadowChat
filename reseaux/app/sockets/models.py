@@ -21,6 +21,8 @@ class Message(Base):
     auto_destruction = Column(Boolean, default=False)
     date_expiration = Column(DateTime, nullable=True)
     date_envoi = Column(DateTime, default=datetime.utcnow)
+    lu = Column(Boolean, default=False)
+
 
 class Fichiers(Base):
     __tablename__ = 'fichiers'
@@ -36,3 +38,9 @@ class Logs(Base):
     type_action = Column(String, nullable=False)
     description_action = Column(String, nullable=False)
     date_action = Column(DateTime, default=datetime.utcnow)
+    
+class Groupe(Base):
+    __tablename__ = "groupes"
+    id_groupe = Column(Integer, primary_key=True, index=True)
+    nom = Column(String, nullable=False, unique=True)
+    date_creation = Column(DateTime, default=datetime.utcnow)

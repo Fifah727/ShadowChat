@@ -148,6 +148,7 @@ a:hover {
     padding-bottom: 5px;
     border-bottom: 2px solid var(--secondary-color);
     text-transform: uppercase;
+    
 }
 
 .user-list {
@@ -167,6 +168,7 @@ a:hover {
     justify-content: space-between;
     align-items: center;
     transition: background 0.3s ease;
+    
 }
 
 .user-item:hover {
@@ -256,6 +258,7 @@ a:hover {
     font-style: italic;
     text-align: center;
     border: 1px dashed var(--primary-color);
+    align-self: center;
 }
 
 /* Formulaire d'entrée */
@@ -330,7 +333,6 @@ a:hover {
     background-color: #D6955B;
     color: white;
     font-weight: bold;
-
     padding: 10px;
     margin: 5px 0;
     border-radius: 6px;
@@ -339,11 +341,169 @@ a:hover {
     justify-content: space-between;
     align-items: center;
     transition: background 0.3s ease;
+
+    margin-top: 25px;
 }
 
 .logout-button:hover {
     background-color: #b97438;
 }
+.sidebar-button {
+    background-color: var(--button-bg);
+    color: white;
+    font-weight: bold;
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.3s ease;
+    margin-bottom: 20px;
+    margin-top: 10px;
+}
 
+.sidebar-button:hover {
+    background-color: var(--button-hover-bg);
+}
 
+.sidebar-right {
+    width: 240px;
+    background: var(--secondary-bg);
+    color: var(--primary-color);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    border-right: 2px solid var(--primary-bg);
+    box-shadow: 3px 0 10px var(--shadow-color);
+}
+.theme-toggle-button{
+    background: var(--button-bg);
+    color: #fff;
+    font-size: 16px;
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
 
+.theme-toggle-button:hover {
+    background: var(--button-hover-bg);
+}
+
+.detruire-button {
+    background: var(--button-bg);
+    color: #fff;
+    font-size: 16px;
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+.detruire-button:hover {
+    background: var(--button-hover-bg);
+}
+
+/* RESPONSIVE */
+/* Responsive design */
+@media screen and (max-width: 1024px) {
+    .chat-layout {
+        flex-direction: column;
+    }
+
+    .sidebar,
+    .sidebar-right {
+        width: 100%;
+        order: -1;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+
+    .sidebar-title {
+        font-size: 16px;
+    }
+
+    .user-list {
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    .main-chat {
+        height: auto;
+        flex-grow: 1;
+    }
+
+    .chat-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .message-list {
+        padding: 10px;
+    }
+
+    .message {
+        max-width: 85%;
+        font-size: 14px;
+    }
+
+    .input-controls {
+        flex-direction: column;
+    }
+
+    .message-input-area {
+        padding: 10px;
+    }
+}
+
+@media screen and (max-width: 600px) {
+    .login-form {
+        width: 90%;
+        padding: 20px;
+    }
+
+    .login-title {
+        font-size: 22px;
+        text-align: center;
+    }
+
+    .message-input,
+    .send-button,
+    .upload-button {
+        font-size: 14px;
+        padding: 10px;
+    }
+
+    .chat-title {
+        font-size: 18px;
+    }
+
+    .sidebar,
+    .sidebar-right {
+        padding: 10px;
+        gap: 10px;
+    }
+
+    .logout-button,
+    .sidebar-button {
+        font-size: 14px;
+        padding: 8px;
+    }
+
+    .theme-toggle-button,
+    .detruire-button {
+        font-size: 14px;
+        padding: 8px;
+    }
+}
+.text-xs {
+    font-size: 0.75rem;
+}
+.text-green-500 {
+    color: #10B981;
+}

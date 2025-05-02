@@ -102,7 +102,8 @@ def init_socket_events(socketio):
             emit('user_connected', {
                 "user": "Master",
                 "text": username+" s'est connecté",
-                "system":"system"
+                "system":"system",
+                
             }, broadcast=True)
            
 
@@ -151,6 +152,7 @@ def init_socket_events(socketio):
         try:
             username = data.get('username', '').strip()
             message = data.get('message', '').strip()
+            anonymous = data.get('anonymous', '')
 
             expediteur = session.query(Utilisateur).filter_by(nom_utilisateur=username).first()
 
@@ -163,6 +165,9 @@ def init_socket_events(socketio):
             session.add(new_message)
             session.commit()
 
+            if (anonymous):
+                username = "?"
+            
             # BROADCAST
             emit("receive_message", {
                 "user": username,
@@ -184,6 +189,8 @@ def init_socket_events(socketio):
             username = data.get('username', '').strip()
             message = data.get('message', '').strip()
             destinataire_pseudo = data.get('destinataire', '').strip()
+          
+
 
             expediteur = session.query(Utilisateur).filter_by(nom_utilisateur=username).first()
             destinataire_bd = session.query(Utilisateur).filter_by(nom_utilisateur=destinataire_pseudo).first()
@@ -197,13 +204,18 @@ def init_socket_events(socketio):
             )
             session.add(new_message)
             session.commit()
+          
+            # Récupérer l'ID du message nouvellement créé
+            message_id = new_message.id_message
 
-            # PRIVATE : se dirige vers le destinataire
+            # Envoyer le message avec l'ID vers le destinataire
             emit("receive_private_message", {
+                "message_id": message_id,  # Ajout de l'ID du message
                 "user": username,
                 "text": message,
-                "destinataire":destinataire_pseudo
-            },to=destinataire_sid)
+                "destinataire": destinataire_pseudo,
+                "lu" : False
+            }, to=destinataire_sid)
 
         except Exception as e:
             session.rollback()
@@ -291,5 +303,39 @@ def init_socket_events(socketio):
         except Exception as e:
             print(f"Erreur récupération statut utilisateurs : {e}")
             emit('status_error', 'Erreur serveur.')
+        finally:
+            session.close()
+
+    @socketio.on('mark_as_read')
+    def handle_mark_as_read(data):
+        session = scoped_session(SessionLocal)
+        try:
+            message_id = data.get('message_id')
+            destinataire = data.get('destinataire')
+
+            if not message_id or not destinataire:
+                emit('mark_read_error', {'error': 'Données manquantes'})
+                return
+
+            message = session.query(Message).filter_by(id_message=message_id).first()
+
+            if not message:
+                emit('mark_read_error', {'error': 'Message introuvable'})
+                return
+
+            # Vérifier que le destinataire est bien celui prévu
+            user = session.query(Utilisateur).filter_by(nom_utilisateur=destinataire).first()
+            if user and message.destinataire_id == user.id_utilisateur:
+                message.lu = True
+                session.commit()
+
+                emit('message_marked_read', {'message_id': message_id}, to=request.sid)
+            else:
+                emit('mark_read_error', {'error': 'Accès refusé'})
+
+        except Exception as e:
+            session.rollback()
+            print(f"Erreur mark_as_read : {e}")
+            emit('mark_read_error', {'error': 'Erreur serveur'})
         finally:
             session.close()
