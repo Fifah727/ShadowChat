@@ -3,8 +3,8 @@ from flask import request
 from flask_socketio import emit, join_room, leave_room
 from sqlalchemy.orm import scoped_session
 from datetime import datetime
-from models import Utilisateur, Logs, Message
-from utils import get_sid_by_username, get_connected_users, get_connected_usernames
+from models import Utilisateur, Logs, Message, Groupe
+from utils import get_sid_by_username, get_connected_users, get_connected_usernames,get_groupes_dict
 from db_config import SessionLocal
 
 import os
@@ -12,9 +12,30 @@ import base64
 
 UPLOAD_FOLDER = 'uploads'
 users = {}  # Global users connected
+groupe = {}
+
 
 def init_socket_events(socketio):
-
+    
+    # CREER MASTER
+    def creer_groupe_master():
+        session = scoped_session(SessionLocal)
+        exist = session.query(Groupe).filter_by(nom="Master").first()
+        if not exist:
+            master = Groupe(nom="Master", admin_id=None, est_systeme=True, date_creation=datetime.utcnow())
+            session.add(master)
+            session.commit()
+            #master.id_groupe
+            id_groupe_master = master.id_groupe
+            return id_groupe_master
+        
+        else:
+            # Si le groupe existe déjà, renvoie son ID
+            return exist.id_groupe
+            
+    # ✅ Appel immédiat dès le démarrage :
+    id_groupe_master = creer_groupe_master()
+    
     @socketio.on('connect')
     def handle_connect():
         users[request.sid] = {'username': None}
@@ -39,10 +60,14 @@ def init_socket_events(socketio):
             new_user = Utilisateur(nom_utilisateur=username, cle_publique=mdp)
             session.add(new_user)
             session.commit()
+            
+            # 🔸 Récupérer le groupe Master
+            groupe_master = session.query(Groupe).filter_by(nom="Master", est_systeme=True).first()
+            if groupe_master:
+                groupe_master.utilisateurs.append(new_user)
+                session.commit()
 
             emit('username_set_success', username)
-            
-            
             
         except Exception as e:
             session.rollback()
@@ -58,7 +83,9 @@ def init_socket_events(socketio):
             username = data.get('username', '').strip()
             mdp = data.get('mdp', '').strip()
 
-            utilisateur = session.query(Utilisateur).filter_by(nom_utilisateur=username).first()
+            utilisateur = session.query(Utilisateur).filter(
+                Utilisateur.nom_utilisateur.ilike(username)
+            ).first()
 
             if utilisateur is None:
                 emit('not_registered')
@@ -67,6 +94,8 @@ def init_socket_events(socketio):
             if utilisateur.cle_publique != mdp:
                 emit('mdp_false')
                 return
+            
+            username = utilisateur.nom_utilisateur
 
             # ajouter dans la liste des users connectés dans : users = {}
             users[request.sid]['username'] = username
@@ -105,7 +134,7 @@ def init_socket_events(socketio):
                 "system":"system",
                 
             }, broadcast=True)
-           
+            
 
         except Exception as e:
             session.rollback()
@@ -144,6 +173,11 @@ def init_socket_events(socketio):
             'username': username,
             'all_users' : result
         })
+        
+        # Récupérer tous les groupes
+        groupes = get_groupes_dict(session)
+        # Envoyer la nouvelle liste à tous les clients
+        emit('liste_groupes', groupes, broadcast=True)
       
     # BROADCAST
     @socketio.on('send_message')
@@ -155,13 +189,13 @@ def init_socket_events(socketio):
             anonymous = data.get('anonymous', '')
 
             expediteur = session.query(Utilisateur).filter_by(nom_utilisateur=username).first()
-
             new_message = Message(
-                expediteur_id=expediteur.id_utilisateur if expediteur else None,
-                destinataire_id=None,
+                expediteur_id=expediteur.id_utilisateur,
+                groupe_id=id_groupe_master,  # ➕ Associer le groupe
                 contenu_chiffre=message,
                 date_envoi=datetime.utcnow()
             )
+           
             session.add(new_message)
             session.commit()
 
@@ -312,6 +346,8 @@ def init_socket_events(socketio):
         try:
             message_id = data.get('message_id')
             destinataire = data.get('destinataire')
+            
+            print(message_id +" - "+destinataire)
 
             if not message_id or not destinataire:
                 emit('mark_read_error', {'error': 'Données manquantes'})
@@ -339,3 +375,48 @@ def init_socket_events(socketio):
             emit('mark_read_error', {'error': 'Erreur serveur'})
         finally:
             session.close()
+
+    @socketio.on('creer_groupe')
+    def creer_groupe(data):
+        session = scoped_session(SessionLocal)  # Créer une session scoped
+        try:
+            # Récupérer les données envoyées
+            nom = data.get('nom_groupe')
+            admin_pseudo = data.get('admin_pseudo')
+            date_creation = datetime.utcnow()
+
+            if not nom or not admin_pseudo:
+                emit('groupe_creation_failed', {'message': 'Nom du groupe ou pseudo manquant'})
+                return
+
+            # Récupérer l'utilisateur administrateur
+            utilisateur = session.query(Utilisateur).filter(
+                Utilisateur.nom_utilisateur.ilike(admin_pseudo)
+            ).first()
+
+            # Créer le groupe avec la date de création automatiquement générée
+            nouveau_groupe = Groupe(nom=nom,admin_id=utilisateur.id_utilisateur, date_creation=date_creation)
+
+            # Ajouter le groupe à la base de données
+            session.add(nouveau_groupe)
+            session.commit()
+            
+            # 🔸 Récupérer le groupe
+            if nouveau_groupe:
+                nouveau_groupe.utilisateurs.append(utilisateur)
+                session.commit()
+
+            # Répondre avec l'id du groupe créé et les autres infos
+        
+            # Récupérer tous les groupes
+            groupes = get_groupes_dict(session)
+            # Envoyer la nouvelle liste à tous les clients
+            emit('liste_groupes', groupes, broadcast=True)
+
+        except Exception as e:
+            session.rollback()
+            print(f"Erreur lors de la création du groupe : {e}")
+            emit('groupe_creation_failed', {'message': 'Erreur du serveur'})
+        finally:
+            session.close()
+

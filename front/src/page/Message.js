@@ -17,7 +17,8 @@ function Message() {
     const messagesEndRef = useRef(null);
     const fileInputRef = useRef(null);
     const [selfDestructTime, setSelfDestructTime] = useState(0); // en ms
-
+    const [nomGroupe, setNomGroupe] = useState('');
+    const [groupes, setGroupes] = useState([]);
 
     const username = localStorage.getItem('username');
     const socket = useContext(SocketContext); // socket via context
@@ -25,31 +26,21 @@ function Message() {
     // Appel une seule fois au début
     useEffect(() => {
         if (!socket) return;
-
-        const alreadyConnected = sessionStorage.getItem('socket_connected');
-
-        if (!alreadyConnected) {
-            socket.emit('reconnect_user', { username });
-
-            socket.on('reconnect_success', (data) => {
-                console.log("Reconnexion réussie en tant que :", data.username);
-                const usernames = data.all_users
-                    .filter(user => user.connecté === true)
-                    .map(user => user.username);
-                setConnectedUsers(usernames);
-                sessionStorage.setItem('socket_connected', 'true'); // Marque comme connecté
-            });
-
-            socket.on('reconnect_failed', (error) => {
-                console.error("Accès refusé :", error);
-                sessionStorage.removeItem('socket_connected'); // Nettoie au cas où
-                window.location.href = "/login";
-            });
-        }else {
-            // 🔁 Si on est déjà connecté (ex: refresh), demander la liste des utilisateurs connectés
-            socket.emit('get_all_users_status');
-        }
-
+        socket.emit('reconnect_user', { username });
+        socket.on('reconnect_success', (data) => {
+            console.log("Reconnexion réussie en tant que :", data.username);
+            const usernames = data.all_users
+                .filter(user => user.connecté === true)
+                .map(user => user.username);
+            setConnectedUsers(usernames);
+            sessionStorage.setItem('socket_connected', 'true'); // Marque comme connecté
+        });
+        socket.on('reconnect_failed', (error) => {
+            console.error("Accès refusé :", error);
+            sessionStorage.removeItem('socket_connected'); // Nettoie au cas où
+            window.location.href = "/login";
+        });
+    
         // Ces événements peuvent toujours être écoutés même après refresh
         socket.on('receive_message', (msg) => {
             setMasterMessages((prev) => [...prev, msg]);
@@ -69,7 +60,7 @@ function Message() {
                     },
                 ],
             }));
-            console.log(msg);
+            // console.log(msg);
         });
         
         socket.on('all_users_status', (data) => {
@@ -91,6 +82,7 @@ function Message() {
         });
 
         socket.on('message_marked_read', ({ message_id }) => {
+            console.log("message_marked_read");
             setPrivateMessages(prev => {
                 const updated = { ...prev };
                 for (let user in updated) {
@@ -105,6 +97,12 @@ function Message() {
             });
         });
 
+        // GROUPE LISTE
+        socket.on('liste_groupes', (groupes) => {
+            setGroupes(groupes);
+            console.log(groupes);
+        });
+
         return () => {
             socket.off('reconnect_success');
             socket.off('reconnect_failed');
@@ -112,6 +110,7 @@ function Message() {
             socket.off('receive_private_message');
             socket.off('user_disconnected');
             socket.off('user_connected');
+            socket.off('liste_groupes');
         };
     }, [socket, username]);
 
@@ -183,16 +182,20 @@ function Message() {
 
     const handleSelectConversation = (conversation) => {
         // marquer les messages comme lus
-        if (activeConversation !== 'Master') {
-            privateMessages[activeConversation].forEach(msg => {
-                if (msg.destinataire === username) {
-                    socket.emit('mark_as_read', {
-                        message_id: msg.message_id,
-                        destinataire: username
-                    });
-                }
-            });
-        }
+        console.log(conversation);
+        const isPrivate = !groupes.includes(conversation) && conversation !== "Master";
+        // if (isPrivate && privateMessages[conversation]) {
+        //     privateMessages[activeConversation].forEach(msg => {
+        //         if (msg.destinataire === username) {
+        //             socket.emit('mark_as_read', {
+        //                 message_id: msg.message_id,
+        //                 destinataire: username
+        //             });
+        //             console.log(msg.destinataire +" - "+username);
+        //         }
+                
+        //     });
+        // }
         setActiveConversation(conversation);
     };
     
@@ -229,6 +232,18 @@ function Message() {
         }
     };
 
+    const handleSubmitGroupe = (e) => {
+        e.preventDefault();
+        const nom = nomGroupe.trim();
+        if (nom !== '') {
+          socket.emit('creer_groupe', { 
+            // admin id -> pseudo
+            nom_groupe: nom,
+            admin_pseudo: username,
+        });
+          setNomGroupe('');
+        }
+    };
 
     return (
         <div className="chat-layout">
@@ -236,17 +251,25 @@ function Message() {
                 <div className="sidebar-section">
                     {/* <h3 className="sidebar-title">Conversations</h3> */}
                     <ul className="user-list">
-                        <li className="sidebar-title">Groupe</li>
-                        <li
-                            onClick={() => handleSelectConversation('Master')}
-                            className={`user-item ${activeConversation === 'Master' ? 'active' : ''}`}
-                        >
-                            Master
-                        </li>
-                        <li  className="sidebar-button" onClick={handleLogout}>
+                        <li className="sidebar-title">Vos groupes</li>
+                        {groupes.map((groupe) => (
+                            <li
+                                key={groupe.id_groupe}
+                                onClick={() => handleSelectConversation(groupe.nom)}
+                                className={`user-item ${activeConversation === groupe.nom ? 'active' : ''}`}
+                            >
+                               {groupe.nom}
+                            </li>
+                        ))}
+                        {/* CREATION NOUVEAU GROUPE */}
+                        <li  className="sidebar-button">
                         <i className="fa fa-plus"></i> Nouveau</li>
-                        {/* <label for="#nomgpe">Nom du groupe</label>
-                        <input type='text' id='nomgpe' ></input> */}
+                        <input id='nomgpe' placeholder="Nom du groupe"
+                         type="text"
+                         value={nomGroupe}
+                         onChange={(e) => setNomGroupe(e.target.value)}
+                        ></input>
+                        <button onClick={handleSubmitGroupe}>Créer</button>
 
                         <li  className="sidebar-title"><i className='fa fa-user'></i> : en ligne</li>
                         {Object.values(connectedUsers).map((uname) =>
@@ -273,6 +296,8 @@ function Message() {
                     <h1 className='chat-title'>
                         {activeConversation === 'Master'
                             ? 'MASTER'
+                            : groupes.some(g => g.nom.toLowerCase() === activeConversation.toLowerCase())
+                            ? `Groupe : ${activeConversation}`
                             : `Message privé avec ${activeConversation}`}
                     </h1>
                     <button onClick={toggleTheme} className="theme-toggle-button">
@@ -333,9 +358,10 @@ function Message() {
                             style={{ display: 'none' }}
                         />
                         <label className="anonymous-checkbox"
-                            style={{display: activeConversation === 'Master'
-                                ? 'block'
-                                : 'none'}}
+                            style={{display: 
+                                !groupes.some(g => g.nom.toLowerCase() === activeConversation.toLowerCase())
+                                ? "none"
+                                : "block"}}
                         >
                             <input
                                 type="checkbox"
@@ -353,7 +379,7 @@ function Message() {
                         >
                             Joindre un fichier
                         </button>
-                        <label for="#detruire"> Détruire dans :</label>
+                        <label> Détruire dans :
                         <select
                             id="detruire"
                             className="detruire-button"
@@ -372,6 +398,7 @@ function Message() {
                             <option>30 secondes</option>
                             <option>1 minutes</option>
                         </select>
+                        </label>
 
                     </div>
 
@@ -381,7 +408,11 @@ function Message() {
                                 type="text"
                                 value={message}
                                 onChange={(e) => setMessage(e.target.value)}
-                                placeholder={`Votre message${activeConversation === 'Master' ? '' : ` à ${activeConversation}`}...`}
+                                placeholder=
+                                    {!groupes.some(g => g.nom.toLowerCase() === activeConversation.toLowerCase())
+                                        ?`Votre message avec ${activeConversation}`
+                                        : `Votre message dans ${activeConversation}`
+                                    }
                                 className="message-input"
                             />
                             <button type="submit" className="send-button">
@@ -392,9 +423,11 @@ function Message() {
                 </div>
             </main>
 
-            <aside className="sidebar-right"  style={{display: activeConversation === 'Master'
-                                ? 'block'
-                                : 'none'}}>
+            <aside className="sidebar-right"  style={{display: 
+                    !groupes.some(g => g.nom.toLowerCase() === activeConversation.toLowerCase())
+                    ? "none"
+                    : "block"
+                }}>
                 <div className="sidebar-section">
                     <ul className="user-list">
                         <li className="sidebar-title">Master : gestion</li>
